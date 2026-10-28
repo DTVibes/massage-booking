@@ -8,6 +8,16 @@ cd "$(dirname "$0")/.."
 
 if [ "$(id -u)" -ne 0 ]; then echo "Запустите от root: sudo bash deploy/install.sh"; exit 1; fi
 
+# На серверах с 1–2 ГБ памяти сборке не хватает RAM — добавляем файл подкачки 2 ГБ.
+if [ "$(swapon --noheadings | wc -l)" -eq 0 ] && [ "$(awk '/MemTotal/ {print $2}' /proc/meminfo)" -lt 3000000 ]; then
+  echo "==> Создаю файл подкачки 2 ГБ..."
+  fallocate -l 2G /swapfile || dd if=/dev/zero of=/swapfile bs=1M count=2048
+  chmod 600 /swapfile
+  mkswap /swapfile >/dev/null
+  swapon /swapfile
+  grep -q '^/swapfile ' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
+fi
+
 echo "==> Устанавливаю Docker..."
 if ! command -v docker >/dev/null 2>&1; then
   apt-get update -q
