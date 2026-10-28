@@ -1,0 +1,10 @@
+fastapi==0.162.0
+uvicorn[standard]==0.54.0
+SQLAlchemy==2.0.55
+alembic==1.20.1
+psycopg[binary]==3.3.6
+pydantic==2.13.5
+pydantic-settings==2.16.2
+aiogram==3.31.0
+phonenumbers==9.0.42
+tzdata==2026.6
