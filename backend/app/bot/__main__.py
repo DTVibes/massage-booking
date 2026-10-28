@@ -130,6 +130,13 @@ async def main() -> None:
     bot = Bot(cfg.bot_token)
     dp = Dispatcher()
     dp.include_router(router)
+    try:
+        await setup_and_poll(bot, dp, cfg)
+    finally:
+        await bot.session.close()
+
+
+async def setup_and_poll(bot: Bot, dp: Dispatcher, cfg) -> None:
     await bot.set_my_commands([
         BotCommand(command="start", description="Начать"),
         BotCommand(command="book", description="Записаться"),

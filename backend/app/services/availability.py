@@ -182,3 +182,15 @@ def available_dates(db: Session, settings: AppSettings, service: Service, now: d
             status = "available" if count else "full"
         result.append({"date": d, "status": status, "free_slots": count})
     return result
+
+
+def appointment_snapshot(appt: Appointment) -> Service:
+    """Параметры услуги, зафиксированные в записи (для переноса)."""
+    return Service(duration_minutes=appt.duration_minutes, buffer_minutes=appt.buffer_minutes)
+
+
+def slots_out(slots: list[Slot], settings: AppSettings) -> list[dict]:
+    from app.services.formatting import fmt_time
+
+    return [{"starts_at": s.starts_at, "ends_at": s.ends_at, "local_time": fmt_time(s.starts_at, settings.timezone)}
+            for s in slots]

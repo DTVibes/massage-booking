@@ -19,7 +19,7 @@ from app.errors import Conflict, Forbidden, NotFound, ValidationFailed
 from app.models import Appointment, AppointmentStatus, AppSettings, Service, User, UserRole
 from app.services import notifications
 from app.services.audit import record_history
-from app.services.availability import ScheduleContext, earliest_start, horizon_dates, service_buffer
+from app.services.availability import ScheduleContext, appointment_snapshot, earliest_start, horizon_dates, service_buffer
 from app.services.settings_service import get_app_settings
 
 OVERLAP_CONSTRAINT = "ex_appointments_no_overlap"
@@ -229,7 +229,7 @@ def reschedule_appointment(db: Session, *, actor: User, appointment_id: uuid.UUI
         raise ValidationFailed("Новое время совпадает с текущим", code="same_time")
 
     # Валидируем по параметрам, зафиксированным в записи (снимок услуги), а не текущей услуги.
-    snapshot = Service(duration_minutes=appt.duration_minutes, buffer_minutes=appt.buffer_minutes)
+    snapshot = appointment_snapshot(appt)
     if is_admin and ignore_schedule:
         if new_starts_at <= now - timedelta(days=1):
             raise ValidationFailed("Нельзя перенести запись в прошлое", code="past_time")

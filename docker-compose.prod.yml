@@ -1,0 +1,25 @@
+# Production: автоматический HTTPS через Caddy (Let's Encrypt).
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+# Требуется DNS-запись A для DOMAIN, указывающая на сервер, и открытые порты 80/443.
+services:
+  web:
+    ports: !reset []
+
+  caddy:
+    image: caddy:2.8-alpine
+    depends_on:
+      - web
+    environment:
+      DOMAIN: ${DOMAIN:?задайте DOMAIN в .env}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:

@@ -45,10 +45,12 @@ from app.schemas import (
     ScheduleOut,
     ServiceIn,
     ServicePatch,
+    SlotOut,
     TimeInterval,
 )
 from app.services import booking
 from app.services.audit import audit, record_history
+from app.services.availability import appointment_snapshot, available_slots, slots_out
 from app.services.phone import normalize_phone
 from app.services.schedule import find_schedule_conflicts
 from app.services.settings_service import get_app_settings
@@ -147,6 +149,25 @@ def update_appointment(appointment_id: uuid.UUID, body: AdminAppointmentPatch, a
         record_history(db, appt, "updated", admin, details={"field": "comment", "old": old, "new": appt.comment})
         db.commit()
     return _detail(db, appointment_id)
+
+
+@router.get("/availability/slots", response_model=list[SlotOut])
+def admin_slots(admin: AdminUser, db: DB, date: date, service_id: uuid.UUID | None = None,
+                appointment_id: uuid.UUID | None = None):
+    """Свободные слоты по правилам графика (для ручной записи и переноса администратором)."""
+    settings = get_app_settings(db)
+    if appointment_id is not None:
+        appt = db.get(Appointment, appointment_id)
+        if appt is None:
+            raise NotFound("Запись не найдена")
+        service, exclude = appointment_snapshot(appt), appt.id
+    elif service_id is not None:
+        service, exclude = db.get(Service, service_id), None
+        if service is None:
+            raise NotFound("Услуга не найдена")
+    else:
+        raise ValidationFailed("Укажите service_id или appointment_id")
+    return slots_out(available_slots(db, settings, service, date, timeutil.now_utc(), exclude), settings)
 
 
 # ---------- Клиенты ----------

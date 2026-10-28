@@ -9,7 +9,7 @@ from sqlalchemy import select
 
 from app import timeutil
 from app.deps import DB, CurrentUser
-from app.errors import NotFound
+from app.errors import NotFound, ValidationFailed
 from app.models import Appointment, AppointmentStatus, Service
 from app.schemas import (
     AppointmentCreateIn,
@@ -25,8 +25,7 @@ from app.schemas import (
     UserOut,
 )
 from app.services import booking
-from app.services.availability import available_dates, available_slots
-from app.services.formatting import fmt_time
+from app.services.availability import appointment_snapshot, available_dates, available_slots, slots_out
 from app.services.phone import normalize_phone
 from app.services.settings_service import get_app_settings
 
@@ -75,18 +74,21 @@ def availability_dates(service_id: uuid.UUID, user: CurrentUser, db: DB):
 
 
 @router.get("/availability/slots", response_model=list[SlotOut], tags=["availability"])
-def availability_slots(service_id: uuid.UUID, date: date, user: CurrentUser, db: DB,
+def availability_slots(date: date, user: CurrentUser, db: DB, service_id: uuid.UUID | None = None,
                        exclude_appointment_id: uuid.UUID | None = None):
+    """Свободные слоты на дату. Для переноса передаётся exclude_appointment_id: тогда
+    используется длительность из снимка записи, а сама запись не считается занятостью."""
     settings = get_app_settings(db)
-    exclude = None
     if exclude_appointment_id is not None:
         appt = db.get(Appointment, exclude_appointment_id)
         if appt is None or appt.client_id != user.id:
             raise NotFound("Запись не найдена")
-        exclude = appt.id
-    slots = available_slots(db, settings, _active_service(db, service_id), date, timeutil.now_utc(), exclude)
-    return [SlotOut(starts_at=s.starts_at, ends_at=s.ends_at, local_time=fmt_time(s.starts_at, settings.timezone))
-            for s in slots]
+        service, exclude = appointment_snapshot(appt), appt.id
+    elif service_id is not None:
+        service, exclude = _active_service(db, service_id), None
+    else:
+        raise ValidationFailed("Укажите service_id или exclude_appointment_id")
+    return slots_out(available_slots(db, settings, service, date, timeutil.now_utc(), exclude), settings)
 
 
 def _with_permissions(appt: Appointment, settings, now) -> AppointmentOut:

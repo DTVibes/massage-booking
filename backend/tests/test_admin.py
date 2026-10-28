@@ -141,3 +141,15 @@ def test_settings_change_applies_without_code(api, client_headers, admin_headers
     assert api.patch("/api/v1/admin/settings", json={"timezone": "Mars/Base"}, headers=admin_headers).status_code == 422
     audit = api.get("/api/v1/admin/audit", headers=admin_headers).json()
     assert audit["items"][0]["action"] == "settings.update"
+
+
+def test_admin_slots_for_reschedule(api, client_headers, admin_headers, service_id):
+    a = book(api, client_headers, service_id, msk(3, 10)).json()
+    r = api.get("/api/v1/admin/availability/slots", params={"date": "2026-11-03", "appointment_id": a["id"]},
+                headers=admin_headers)
+    assert r.status_code == 200 and r.json()[0]["local_time"] == "10:00"
+    r = api.get("/api/v1/admin/availability/slots", params={"date": "2026-11-03", "service_id": service_id},
+                headers=admin_headers)
+    assert r.json()[0]["local_time"] == "11:30"
+    assert api.get("/api/v1/admin/availability/slots", params={"date": "2026-11-03", "service_id": service_id},
+                   headers=client_headers).status_code == 403

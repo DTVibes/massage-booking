@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --c-bg: 246 243 238;
+  --c-card: 255 255 255;
+  --c-ink: 43 41 38;
+  --c-muted: 120 114 105;
+  --c-line: 230 225 216;
+  --c-accent: 94 125 99;
+  --c-accent-soft: 230 238 229;
+  --c-on-accent: 255 255 255;
+  --c-danger: 184 76 64;
+  --c-warn: 176 128 48;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --c-bg: 27 28 25;
+  --c-card: 38 40 36;
+  --c-ink: 236 233 226;
+  --c-muted: 160 155 145;
+  --c-line: 58 60 55;
+  --c-accent: 134 168 137;
+  --c-accent-soft: 46 58 47;
+  --c-on-accent: 20 24 20;
+  --c-danger: 226 120 105;
+  --c-warn: 214 170 90;
+  color-scheme: dark;
+}
+
+html, body, #root { min-height: 100%; }
+body {
+  @apply bg-bg text-ink font-sans antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+input, select, textarea { @apply text-ink; font-size: 16px; }
+
+@layer components {
+  .field { @apply w-full rounded-xl border border-line bg-card px-3.5 py-3 outline-none transition focus:border-accent; }
+  .label { @apply mb-1.5 block text-sm text-muted; }
+  .chip { @apply whitespace-nowrap rounded-full border border-line bg-card px-3.5 py-1.5 text-sm transition; }
+  .chip-active { @apply border-accent bg-accent text-on-accent; }
+}
+
+.pb-safe { padding-bottom: calc(env(safe-area-inset-bottom) + 76px); }
