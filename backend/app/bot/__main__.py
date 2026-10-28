@@ -22,6 +22,7 @@ from app.db import SessionLocal
 from app.models import Appointment, AppointmentStatus, User, UserRole
 from app.services.formatting import fmt_dt, fmt_time
 from app.services.settings_service import get_app_settings
+from app.telegram_client import make_bot
 
 log = logging.getLogger("bot")
 router = Router()
@@ -125,9 +126,7 @@ async def on_member_update(event: ChatMemberUpdated):
 
 async def main() -> None:
     cfg = get_settings()
-    if not cfg.bot_token:
-        raise SystemExit("BOT_TOKEN не задан")
-    bot = Bot(cfg.bot_token)
+    bot = make_bot()
     dp = Dispatcher()
     dp.include_router(router)
     try:

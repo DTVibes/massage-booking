@@ -182,6 +182,7 @@ KEEP_DAYS=30 ./scripts/backup.sh /mnt/backups
 | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | параметры контейнера PostgreSQL |
 | `DOMAIN` | домен для HTTPS (`docker-compose.prod.yml`) |
 | `SESSION_TTL_SECONDS`, `INIT_DATA_MAX_AGE_SECONDS` | срок сессии и допустимый возраст initData |
+| `TELEGRAM_PROXY`, `TELEGRAM_API_URL` | прокси или зеркало Bot API, если с сервера заблокирован `api.telegram.org` (часто у хостингов в РФ) |
 | `RATE_LIMIT_ENABLED`, `DEFAULT_PHONE_REGION`, `LOG_LEVEL`, `WEB_PORT`, `API_WORKERS` | прочее |
 
 ## 8. Известные ограничения

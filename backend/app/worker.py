@@ -199,12 +199,9 @@ def make_telegram_sender(bot) -> Sender:
 
 
 async def run_forever(poll_interval: float = 5.0) -> None:
-    from aiogram import Bot
+    from app.telegram_client import make_bot
 
-    cfg = get_settings()
-    if not cfg.bot_token:
-        raise SystemExit("BOT_TOKEN не задан")
-    bot = Bot(cfg.bot_token)
+    bot = make_bot()
     sender = make_telegram_sender(bot)
     log.info("Обработчик уведомлений запущен")
     try:

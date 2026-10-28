@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     frontend_url: str = "http://localhost:5173"
     timezone: str = "Europe/Moscow"
     secret_key: str = "change-me"
+    # Если с сервера нет прямого доступа к api.telegram.org: прокси (socks5://… или http://…)
+    # или адрес собственного зеркала / локального Bot API сервера.
+    telegram_proxy: str = ""
+    telegram_api_url: str = ""
 
     session_ttl_seconds: int = 24 * 3600
     init_data_max_age_seconds: int = 24 * 3600
