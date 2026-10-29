@@ -1,7 +1,15 @@
 # Локальный и базовый production-запуск. HTTPS — см. docker-compose.prod.yml и README.
 name: massage-booking
 
+# Логи контейнеров: не больше 3 файлов по 10 МБ на сервис, чтобы не заполнить диск.
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 x-backend: &backend
+  logging: *logging
   build: ./backend
   env_file: .env
   environment:
@@ -14,6 +22,7 @@ x-backend: &backend
 services:
   db:
     image: postgres:16-alpine
+    logging: *logging
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-massage}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?задайте POSTGRES_PASSWORD в .env}
@@ -52,6 +61,7 @@ services:
 
   web:
     build: ./frontend
+    logging: *logging
     depends_on:
       api:
         condition: service_healthy

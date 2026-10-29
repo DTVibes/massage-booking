@@ -57,6 +57,14 @@ fi
 echo "==> Собираю и запускаю приложение (первый раз 5–10 минут)..."
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 
+# Ежедневная резервная копия базы (хранятся 14 дней) и еженедельная очистка старых образов Docker.
+cat > /etc/cron.d/massage-booking <<CRON
+0 3 * * * root cd $(pwd) && ./scripts/backup.sh >> backups/backup.log 2>&1
+30 4 * * 0 root docker image prune -f >/dev/null 2>&1
+CRON
+chmod 644 /etc/cron.d/massage-booking
+mkdir -p backups
+
 echo
 echo "==> Готово. Состояние сервисов:"
 docker compose -f docker-compose.yml -f docker-compose.prod.yml ps
