@@ -1,8 +1,38 @@
 # Запись на массаж — Telegram Mini App
 
+[![CI](https://github.com/DTVibes/massage-booking/actions/workflows/ci.yml/badge.svg)](https://github.com/DTVibes/massage-booking/actions/workflows/ci.yml)
+![Python 3.13](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+![React 18](https://img.shields.io/badge/React_18-TypeScript-61DAFB?logo=react&logoColor=white)
+![PostgreSQL 16](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker_Compose-2496ED?logo=docker&logoColor=white)
+
 Онлайн-запись клиентов к массажисту внутри Telegram: клиент выбирает услугу, дату и свободное время, массажист управляет расписанием, клиентами, графиком и услугами в том же Mini App.
 
-**Стек:** React 18 + TypeScript + Vite + Tailwind CSS · официальный Telegram Mini Apps SDK (`telegram-web-app.js`) · Python 3.13 + FastAPI + Pydantic + SQLAlchemy 2 + Alembic · PostgreSQL 16 · aiogram 3 · Docker Compose · Pytest.
+**Попробовать:** бот [@massage39bot](https://t.me/massage39bot) → «Записаться на массаж» (приложение открывается внутри Telegram).
+
+<p>
+  <img src="docs/screenshots/klient-1.webp" alt="Клиент: главная, выбор услуги, календарь, выбор времени, подтверждение" width="100%">
+</p>
+
+<details>
+<summary><b>Ещё скриншоты</b>: после записи, панель массажиста</summary>
+
+<img src="docs/screenshots/klient-2.webp" alt="Клиент: успешная запись, мои записи, перенос, профиль" width="100%">
+<img src="docs/screenshots/admin-1.webp" alt="Массажист: расписание, карточка записи, месяц, клиенты, карточка клиента" width="100%">
+<img src="docs/screenshots/admin-2.webp" alt="Массажист: рабочий график, услуги, настройки, ручная запись" width="100%">
+
+</details>
+
+### Главное
+
+* **Двойная запись невозможна** — свободное время считает сервер, а окончательную гарантию даёт exclusion constraint PostgreSQL по интервалу времени (проверено тестами с 12 параллельными потоками и 8 HTTP-запросами).
+* **Безопасный вход через Telegram** — подпись `initData` проверяется на сервере (HMAC-SHA256), роль администратора читается из БД на каждый запрос.
+* **Надёжные уведомления** — задачи создаются в той же транзакции, что и запись; обработчик берёт их через `FOR UPDATE SKIP LOCKED`, повторяет при ошибках и учитывает лимиты Telegram.
+* **Идемпотентность** — повторное нажатие «Записаться» не создаёт дубль (`Idempotency-Key`).
+* **67 тестов** на настоящем PostgreSQL, GitHub Actions на каждый коммит, запуск в production одной командой с автоматическим HTTPS.
+
+**Стек:** React 18 + TypeScript + Vite + Tailwind CSS · официальный Telegram Mini Apps SDK (`telegram-web-app.js`) · Python 3.13 + FastAPI + Pydantic + SQLAlchemy 2 + Alembic · PostgreSQL 16 · aiogram 3 · Docker Compose · Caddy · Pytest.
 
 Подробно об устройстве, схеме БД, алгоритме слотов и принятых допущениях — [docs/architecture.md](docs/architecture.md).
 
