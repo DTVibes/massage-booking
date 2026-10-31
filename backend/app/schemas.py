@@ -36,6 +36,7 @@ class UserOut(ORM):
     role: UserRole
     created_at: datetime
     notifications_enabled: bool
+    privacy_accepted_at: datetime | None = None
 
 
 class AuthOut(BaseModel):
@@ -57,6 +58,9 @@ class PublicInfoOut(ORM):
     address: str
     contact_phone: str
     contact_telegram: str
+    operator_name: str
+    operator_inn: str
+    privacy_email: str
     timezone: str
     currency: str
     booking_horizon_days: int
@@ -125,6 +129,8 @@ class AppointmentCreateIn(BaseModel):
     service_id: uuid.UUID
     starts_at: datetime
     comment: str | None = Field(default=None, max_length=500)
+    # Галочка «Согласен с политикой конфиденциальности» — нужна при первой записи.
+    accept_privacy: bool = False
 
 
 class RescheduleIn(BaseModel):
@@ -232,6 +238,8 @@ class AdminClientOut(ORM):
     no_show_count: int = 0
     last_visit_at: datetime | None = None
     upcoming_at: datetime | None = None
+    privacy_accepted_at: datetime | None = None
+    anonymized_at: datetime | None = None
 
 
 class AdminClientDetailOut(AdminClientOut):
@@ -345,6 +353,9 @@ class AdminSettingsPatch(BaseModel):
     address: str | None = Field(default=None, max_length=500)
     contact_phone: str | None = Field(default=None, max_length=32)
     contact_telegram: str | None = Field(default=None, max_length=64)
+    operator_name: str | None = Field(default=None, max_length=300)
+    operator_inn: str | None = Field(default=None, pattern=r"^(\d{10}|\d{12})?$")
+    privacy_email: str | None = Field(default=None, max_length=200)
     timezone: str | None = None
     currency: str | None = Field(default=None, pattern=r"^[A-Z]{3}$")
     default_duration_minutes: int | None = Field(default=None, ge=5, le=720)

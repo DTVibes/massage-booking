@@ -48,7 +48,7 @@ from app.schemas import (
     SlotOut,
     TimeInterval,
 )
-from app.services import booking
+from app.services import booking, privacy
 from app.services.audit import audit, record_history
 from app.services.availability import appointment_snapshot, available_slots, slots_out
 from app.services.phone import normalize_phone
@@ -251,6 +251,18 @@ def update_client(client_id: uuid.UUID, body: AdminClientPatch, admin: AdminUser
     for k, v in changes.items():
         setattr(client, k, v)
     audit(db, admin, "client.update", "user", client.id, {"fields": sorted(changes)})
+    db.commit()
+    return _client_detail(db, client.id)
+
+
+@router.post("/clients/{client_id}/anonymize", response_model=AdminClientDetailOut)
+def anonymize_client(client_id: uuid.UUID, admin: AdminUser, db: DB):
+    """Удаление персональных данных клиента по его запросу (152-ФЗ)."""
+    client = db.get(User, client_id)
+    if client is None:
+        raise NotFound("Клиент не найден")
+    privacy.anonymize_client(db, client=client, actor=admin, now=timeutil.now_utc())
+    audit(db, admin, "client.anonymize", "user", client.id)
     db.commit()
     return _client_detail(db, client.id)
 

@@ -25,7 +25,7 @@ def test_create_appointment_snapshot(api, client_headers, service_id, admin_head
     r = api.post("/api/v1/appointments", headers=client_headers, json={
         "service_id": service_id, "starts_at": msk(3, 10).isoformat(),
         # клиент пытается подменить цену, длительность и статус — игнорируется
-        "price_minor": 1, "duration_minutes": 5, "status": "completed"})
+        "price_minor": 1, "duration_minutes": 5, "status": "completed", "accept_privacy": True})
     assert r.status_code == 201, r.text
     a = r.json()
     assert a["status"] == "booked" and a["price_minor"] == 250000 and a["duration_minutes"] == 60

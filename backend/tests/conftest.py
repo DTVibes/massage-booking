@@ -110,9 +110,9 @@ def service_id(api):
     return api.get("/api/v1/services").json()[0]["id"]
 
 
-def book(api, headers, service_id, starts_at: datetime, key: str | None = None):
+def book(api, headers, service_id, starts_at: datetime, key: str | None = None, accept_privacy: bool = True):
     h = dict(headers)
     if key:
         h["Idempotency-Key"] = key
-    return api.post("/api/v1/appointments", json={"service_id": service_id, "starts_at": starts_at.isoformat()},
-                    headers=h)
+    return api.post("/api/v1/appointments", json={"service_id": service_id, "starts_at": starts_at.isoformat(),
+                                                  "accept_privacy": accept_privacy}, headers=h)

@@ -13,6 +13,7 @@ import AdminWorkHours from "./pages/admin/WorkHours";
 import Book from "./pages/client/Book";
 import Home from "./pages/client/Home";
 import MyBookings from "./pages/client/MyBookings";
+import Privacy from "./pages/client/Privacy";
 import Profile from "./pages/client/Profile";
 import Reschedule from "./pages/client/Reschedule";
 
@@ -64,6 +65,7 @@ function Shell() {
         <Route path="/my" element={<MyBookings />} />
         <Route path="/my/:id/reschedule" element={<Reschedule />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/privacy" element={<Privacy />} />
         <Route path="/admin" element={<AdminOnly><AdminSchedule /></AdminOnly>} />
         <Route path="/admin/new" element={<AdminOnly><AdminCreateAppointment /></AdminOnly>} />
         <Route path="/admin/appointments/:id" element={<AdminOnly><AdminAppointment /></AdminOnly>} />

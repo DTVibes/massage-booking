@@ -82,6 +82,10 @@ class User(TimestampMixin, Base):
     bot_blocked: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
     notifications_enabled: Mapped[bool] = mapped_column(Boolean, default=True, server_default=text("true"))
     admin_notes: Mapped[str | None] = mapped_column(Text)
+    # Когда клиент согласился с политикой конфиденциальности (152-ФЗ). NULL — ещё не соглашался.
+    privacy_accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Когда персональные данные клиента удалены (обезличены) по запросу.
+    anonymized_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     appointments: Mapped[list["Appointment"]] = relationship(
         back_populates="client", foreign_keys="Appointment.client_id"
@@ -241,6 +245,10 @@ class AppSettings(TimestampMixin, Base):
     address: Mapped[str] = mapped_column(String(500), default="")
     contact_phone: Mapped[str] = mapped_column(String(32), default="")
     contact_telegram: Mapped[str] = mapped_column(String(64), default="")
+    # Оператор персональных данных для политики конфиденциальности.
+    operator_name: Mapped[str] = mapped_column(String(300), default="", server_default="")
+    operator_inn: Mapped[str] = mapped_column(String(12), default="", server_default="")
+    privacy_email: Mapped[str] = mapped_column(String(200), default="", server_default="")
     timezone: Mapped[str] = mapped_column(String(64), default="Europe/Moscow")
     currency: Mapped[str] = mapped_column(String(3), default="RUB")
     default_duration_minutes: Mapped[int] = mapped_column(Integer, default=60)

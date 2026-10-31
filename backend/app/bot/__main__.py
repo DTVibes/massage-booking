@@ -107,11 +107,24 @@ async def cmd_help(message: Message):
         "2. Выберите услугу, дату и свободное время.\n"
         "3. Укажите телефон и подтвердите запись.\n\n"
         f"Отменить или перенести запись можно в приложении не позднее чем за {cancel_hours} ч до визита.\n\n"
-        "Команды: /book — записаться, /mybookings — мои записи, /help — помощь."
+        "Команды: /book — записаться, /mybookings — мои записи, /help — помощь, "
+        "/privacy — политика конфиденциальности."
     )
     if contacts:
         text += "\n\nКонтакты:\n" + "\n".join(contacts)
     await message.answer(text, reply_markup=app_keyboard())
+
+
+@router.message(Command("privacy"))
+async def cmd_privacy(message: Message):
+    touch_user(message)
+    await message.answer(
+        "Мы храним только то, что нужно для записи: имя, телефон, Telegram ID и ваши записи. "
+        "Данные не передаются третьим лицам.\n\n"
+        "Полный текст политики конфиденциальности — в приложении: внизу главного экрана или в разделе «Профиль». "
+        "Там же есть кнопка «Удалить мои данные».",
+        reply_markup=app_keyboard("Открыть приложение"),
+    )
 
 
 @router.my_chat_member(F.chat.type == "private")
@@ -141,6 +154,7 @@ async def setup_and_poll(bot: Bot, dp: Dispatcher, cfg) -> None:
         BotCommand(command="book", description="Записаться"),
         BotCommand(command="mybookings", description="Мои записи"),
         BotCommand(command="help", description="Помощь и контакты"),
+        BotCommand(command="privacy", description="Политика конфиденциальности"),
     ])
     if cfg.frontend_url.startswith("https://"):
         await bot.set_chat_menu_button(menu_button=MenuButtonWebApp(text="Записаться", web_app=WebAppInfo(url=cfg.frontend_url)))

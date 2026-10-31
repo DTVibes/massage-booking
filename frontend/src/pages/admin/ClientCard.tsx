@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, Card, ErrorState, Field, Loading, Notice, Row, Screen, StatusBadge, Toggle, errorText } from "../../components/ui";
+import { Button, Card, ErrorState, Field, Loading, Notice, Row, Screen, Sheet, StatusBadge, Toggle, errorText } from "../../components/ui";
 import { api } from "../../lib/api";
 import { fmtDateShort, fmtRange, localDate, phoneHref } from "../../lib/format";
 import { useAsync } from "../../lib/hooks";
@@ -18,6 +18,24 @@ export default function ClientCard() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [msg, setMsg] = useState<{ kind: "success" | "error"; text: string } | null>(null);
+  const [askAnon, setAskAnon] = useState(false);
+  const [anonBusy, setAnonBusy] = useState(false);
+
+  async function anonymize() {
+    setAnonBusy(true);
+    setMsg(null);
+    try {
+      const d = await api.post<AdminClientDetail>(`/admin/clients/${id}/anonymize`);
+      c.setData(d);
+      setNotes("");
+      setMsg({ kind: "success", text: "Персональные данные клиента удалены" });
+    } catch (e) {
+      setMsg({ kind: "error", text: errorText(e) });
+    } finally {
+      setAnonBusy(false);
+      setAskAnon(false);
+    }
+  }
   const c = useAsync(async () => {
     const d = await api.get<AdminClientDetail>(`/admin/clients/${id}`);
     setNotes(d.admin_notes ?? "");
@@ -52,7 +70,14 @@ export default function ClientCard() {
               <Row label="Отмен" value={d.cancelled_count} />
               <Row label="Неявок" value={d.no_show_count} />
               <Row label="Последний визит" value={d.last_visit_at ? fmtDateShort(localDate(d.last_visit_at, tz)) : "—"} />
+              <Row label="Согласие на обработку данных"
+                value={d.privacy_accepted_at ? new Date(d.privacy_accepted_at).toLocaleDateString("ru-RU") : "нет"} />
             </div>
+            {d.anonymized_at && (
+              <div className="mt-2">
+                <Notice>Данные клиента удалены {new Date(d.anonymized_at).toLocaleDateString("ru-RU")} по запросу.</Notice>
+              </div>
+            )}
             <div className="mt-3 grid grid-cols-2 gap-2">
               <Button variant="secondary" onClick={() => navigate(`/admin/new?client=${d.id}`)}>Записать</Button>
               {(d.username || d.telegram_id)
@@ -82,7 +107,19 @@ export default function ClientCard() {
             <Toggle checked={!d.is_active} onChange={(v) => patch({ is_active: !v }, v ? "Клиент заблокирован" : "Клиент разблокирован")}
               label="Заблокировать онлайн-запись" />
           </Card>
+          {!d.anonymized_at && (
+            <Button variant="danger" className="w-full" onClick={() => setAskAnon(true)}>Удалить персональные данные</Button>
+          )}
           {msg && <Notice kind={msg.kind}>{msg.text}</Notice>}
+          <Sheet open={askAnon} onClose={() => setAskAnon(false)} title="Удалить данные клиента?">
+            <p className="text-[15px]">
+              Делайте это, когда клиент попросил удалить свои данные. Сотрутся имя, телефон, Telegram, заметки и
+              комментарии, будущие записи отменятся без уведомления клиенту. Прошедшие визиты останутся в статистике как
+              «Клиент удалён». Отменить нельзя.
+            </p>
+            <Button variant="danger" className="w-full" loading={anonBusy} onClick={anonymize}>Удалить данные</Button>
+            <Button variant="secondary" className="w-full" onClick={() => setAskAnon(false)}>Отмена</Button>
+          </Sheet>
 
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">История записей</h2>
           {!d.appointments.length ? <div className="text-sm text-muted">Записей нет</div> : d.appointments.map((a) => (
