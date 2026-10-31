@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { DatePicker } from "../../components/DatePicker";
 import { PhoneForm } from "../../components/PhoneForm";
 import { SlotGrid } from "../../components/SlotGrid";
@@ -25,6 +25,8 @@ export default function Book() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [created, setCreated] = useState<Appointment | null>(null);
+  const needsConsent = !user.privacy_accepted_at;
+  const [consent, setConsent] = useState(false);
   // Один ключ на попытку подтверждения: повторная отправка не создаст дубль.
   const idemKey = useMemo(() => newIdempotencyKey(), [service?.id, slot?.starts_at]);
 
@@ -56,8 +58,9 @@ export default function Book() {
     setError(null);
     try {
       const a = await api.post<Appointment>("/appointments",
-        { service_id: service.id, starts_at: slot.starts_at, comment: comment.trim() || null },
+        { service_id: service.id, starts_at: slot.starts_at, comment: comment.trim() || null, accept_privacy: consent },
         { "Idempotency-Key": idemKey });
+      if (needsConsent) setUser({ ...user, privacy_accepted_at: new Date().toISOString() });
       haptic.success();
       setCreated(a);
       setStep("done");
@@ -183,8 +186,20 @@ export default function Book() {
         Отменить или перенести запись можно в приложении не позднее чем за {info.cancel_min_hours} ч до визита.
         Оплата — на месте.
       </Notice>
+      {needsConsent && (
+        <label className="flex cursor-pointer items-start gap-3 text-[15px]">
+          <input type="checkbox" className="mt-1 h-5 w-5 shrink-0 accent-accent" checked={consent}
+            onChange={(e) => setConsent(e.target.checked)} />
+          <span>
+            Я согласен(на) на обработку моих персональных данных (имя, телефон, Telegram, записи) в соответствии с{" "}
+            <Link to="/privacy" className="text-accent underline">политикой конфиденциальности</Link>
+          </span>
+        </label>
+      )}
       {error && <Notice kind="error">{error}</Notice>}
-      <Button className="w-full" loading={submitting} disabled={!user.phone} onClick={confirm}>Подтвердить запись</Button>
+      <Button className="w-full" loading={submitting} disabled={!user.phone || (needsConsent && !consent)} onClick={confirm}>
+        Подтвердить запись
+      </Button>
     </Screen>
   );
 }

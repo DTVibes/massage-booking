@@ -24,7 +24,7 @@ from app.schemas import (
     SlotOut,
     UserOut,
 )
-from app.services import booking
+from app.services import booking, privacy
 from app.services.availability import appointment_snapshot, available_dates, available_slots, slots_out
 from app.services.phone import normalize_phone
 from app.services.settings_service import get_app_settings
@@ -53,6 +53,14 @@ def update_profile(body: ProfileUpdateIn, user: CurrentUser, db: DB):
         user.notifications_enabled = body.notifications_enabled
     db.commit()
     return user
+
+
+@router.delete("/me", status_code=204, tags=["profile"])
+def delete_my_data(user: CurrentUser, db: DB):
+    """Клиент удаляет свои персональные данные (отзыв согласия, ст. 9 и 21 152-ФЗ)."""
+    privacy.anonymize_client(db, client=user, actor=user, now=timeutil.now_utc())
+    db.commit()
+    return Response(status_code=204)
 
 
 @router.get("/services", response_model=list[ServiceOut], tags=["services"])
@@ -103,6 +111,11 @@ def _with_permissions(appt: Appointment, settings, now) -> AppointmentOut:
 def create_appointment(body: AppointmentCreateIn, user: CurrentUser, db: DB, response: Response,
                        idempotency_key: Annotated[str | None, Header(max_length=64)] = None):
     now = timeutil.now_utc()
+    if user.privacy_accepted_at is None:
+        if not body.accept_privacy:
+            raise ValidationFailed("Чтобы записаться, подтвердите согласие с политикой конфиденциальности",
+                                   code="privacy_consent_required")
+        user.privacy_accepted_at = now
     appt, created = booking.create_appointment(
         db, actor=user, client=user, service_id=body.service_id, starts_at=body.starts_at, now=now,
         idempotency_key=idempotency_key, comment=body.comment,

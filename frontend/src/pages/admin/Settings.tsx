@@ -10,7 +10,7 @@ import type { AdminSettings, AuditItem, Page } from "../../lib/types";
 const AUDIT_LABEL: Record<string, string> = {
   "settings.update": "Изменены настройки", "schedule.update": "Изменён график", "schedule.exception.create": "Добавлено исключение",
   "schedule.exception.delete": "Удалено исключение", "service.create": "Создана услуга", "service.update": "Изменена услуга",
-  "client.create": "Добавлен клиент", "client.update": "Изменён клиент",
+  "client.create": "Добавлен клиент", "client.update": "Изменён клиент", "client.anonymize": "Удалены данные клиента",
 };
 
 export default function Settings() {
@@ -65,6 +65,17 @@ export default function Settings() {
           <Field label="Часовой пояс"><input className="field" value={v.timezone} onChange={text("timezone")} /></Field>
           <Field label="Валюта"><input className="field uppercase" maxLength={3} value={v.currency} onChange={text("currency")} /></Field>
         </div>
+      </Card>
+
+      <Card className="space-y-3">
+        <h2 className="font-semibold">Политика конфиденциальности</h2>
+        <p className="text-sm text-muted">Эти данные показываются клиентам в политике как «оператор персональных данных».</p>
+        <Field label="ФИО (или название ИП)"><input className="field" value={v.operator_name} placeholder="Иванов Иван Иванович" onChange={text("operator_name")} /></Field>
+        <div className="grid grid-cols-2 gap-2">
+          <Field label="ИНН"><input className="field" inputMode="numeric" maxLength={12} value={v.operator_inn} onChange={text("operator_inn")} /></Field>
+          <Field label="E-mail для запросов"><input className="field" type="email" value={v.privacy_email} onChange={text("privacy_email")} /></Field>
+        </div>
+        <Button variant="ghost" className="w-full" onClick={() => navigate("/privacy")}>Посмотреть политику</Button>
       </Card>
 
       <Card className="space-y-3">

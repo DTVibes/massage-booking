@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button, Card, Loading, Screen, StatusBadge } from "../../components/ui";
 import { api } from "../../lib/api";
 import { fmtDuration, fmtRange, phoneHref } from "../../lib/format";
@@ -59,6 +59,8 @@ export default function Home() {
           </div>
         </Card>
       )}
+
+      <Link to="/privacy" className="block text-center text-sm text-muted underline">Политика конфиденциальности</Link>
     </Screen>
   );
 }

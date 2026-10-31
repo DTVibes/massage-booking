@@ -10,6 +10,7 @@ export interface User {
   role: Role;
   created_at: string;
   notifications_enabled: boolean;
+  privacy_accepted_at: string | null;
 }
 
 export interface Info {
@@ -19,6 +20,9 @@ export interface Info {
   address: string;
   contact_phone: string;
   contact_telegram: string;
+  operator_name: string;
+  operator_inn: string;
+  privacy_email: string;
   timezone: string;
   currency: string;
   booking_horizon_days: number;
@@ -119,6 +123,8 @@ export interface AdminClient {
   no_show_count: number;
   last_visit_at: string | null;
   upcoming_at: string | null;
+  privacy_accepted_at: string | null;
+  anonymized_at: string | null;
 }
 
 export interface AdminClientDetail extends AdminClient {
