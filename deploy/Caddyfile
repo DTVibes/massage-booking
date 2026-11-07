@@ -7,3 +7,6 @@
     }
     reverse_proxy web:80
 }
+
+# Дополнительные сайты на этом сервере (см. deploy/sites/)
+import /etc/caddy/sites/*.caddy

@@ -9,3 +9,7 @@ frontend/dist/
 backups/
 *.log
 *.tsbuildinfo
+
+# Сайты других проектов на этом сервере (создаются их установщиками)
+deploy/sites/*.caddy
+!deploy/sites/00-placeholder.caddy
